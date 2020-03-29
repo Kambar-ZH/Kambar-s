@@ -1,6 +1,8 @@
 import pygame
 pygame.init()
 
+#Images
+mainMenu = pygame.image.load("BackMenu.png")
 walkLeft = pygame.image.load("Left.png")
 walkRight = pygame.image.load("Right.png")
 walkUp = pygame.image.load("Up.png")
@@ -18,6 +20,40 @@ pygame.image.load("Drowning3.png"), pygame.image.load("Water.png")]
 edrowningAnim = [pygame.image.load("eDrowning1.png"), pygame.image.load("eDrowning2.png"),
 pygame.image.load("eDrowning3.png"), pygame.image.load("Water.png")]
 winPoint = pygame.image.load("WinPoint.png")
+
+#Music
+bulletSound = pygame.mixer.Sound("./musics/shooting_tank.wav")
+drivingSound = pygame.mixer.Sound("./musics/driving_tank.wav")
+drowningSound = pygame.mixer.Sound("./musics/drowning_tank.wav")
+music = pygame.mixer.music.load("./musics/pixelmusic.mp3")
+pygame.mixer.music.play(-1)
+
+#Game run
+run = True
+solo_run = True
+#Menu run
+menu_run = True
+win = pygame.display.set_mode((1000, 600))
+
+def drawMenu():
+    win.blit(mainMenu, (0, 0))
+    pygame.display.update()
+
+while menu_run == True:
+    position = pygame.mouse.get_pos()
+    pressed_keys = pygame.key.get_pressed()
+    for event in pygame.event.get():
+        if ((position[0] > 245 and position[0] < 695) and (position[1] > 250 and position[1] < 285)) and event.type == pygame.MOUSEBUTTONDOWN:
+            menu_run = False
+            run = False
+        elif ((position[0] > 265 and position[0] < 680) and (position[1] > 365 and position[1] < 400)) and event.type == pygame.MOUSEBUTTONDOWN:
+            menu_run = False
+            solo_run = False
+        elif (((position[0] > 385 and position[0] < 570) and (position[1] > 465 and position[1] < 500)) and event.type == pygame.MOUSEBUTTONDOWN) or event.type == pygame.QUIT:
+            menu_run = False
+            run = False
+            solo_run = False
+    drawMenu()
 
 class player(object):
     def __init__(self, x, y, width, height, num):
@@ -65,10 +101,10 @@ class player(object):
                 if event.type == pygame.QUIT:
                     i = 151
                     pygame.quit()
-        player2.x = 60
-        player2.y = 60
-        player1.x = 800
-        player1.y = 60
+        player2.x = 475
+        player2.y = 105
+        player1.x = 425
+        player1.y = 400
         player1.lives = 3
         player2.lives = 3
         player1.powers = True
@@ -90,6 +126,7 @@ class player(object):
                 self.x -= 7
                 self.y -= 7
     def drowning(self, win):
+        drowningSound.play()
         if self.drowningCount >= 44:
             player.winner(self, self.drowningCount)
             self.visibility = True 
@@ -115,7 +152,6 @@ class player(object):
             self.bullet_size = 12
             self.powers = False
 
-
 class wall(object):
     def __init__(self, x, y, width, height):
         self.x = x 
@@ -124,6 +160,7 @@ class wall(object):
         self.width = width
     def draw(self, win):
         win.blit(walls, (self.x, self.y))
+
 class projectile(object):
     def __init__(self, x, y, radius, facingx, facingy):
         self.x = x
@@ -146,16 +183,14 @@ def collision (x1, y1, width1, height1, x2, y2, width2, height2, num):
                 player2.visibility = False
                 player2.drowning(win)
 
-win = pygame.display.set_mode((1000, 600))
 font = pygame.font.SysFont("comicsans", 30, True, True)
 pygame.display.set_caption("Tank")
-player1 = player(800, 60, 64, 64, 2)
-player2 = player(60, 60, 64, 64, 1)
+player1 = player(425, 400, 64, 64, 2)
+player2 = player(475, 105, 64, 64, 1)
 bullets = []
 ebullets = []
 shootLoop = 0
 eshootLoop = 0
-run = True
 clock = pygame.time.Clock()
 facingx = 0
 facingy = 0
@@ -204,52 +239,30 @@ while run == True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-    
-    for bullet in bullets:
-        if (bullet.x < 890 and bullet.x > 60):
-            bullet.x += bullet.velx
-        else:
-            bullets.pop(bullets.index(bullet))
-        if (bullet.y < 510 and bullet.y > 60):
-            bullet.y += bullet.vely
-        else:
-            bullets.pop(bullets.index(bullet))
-        if bullet.x > player2.x and bullet.x < player2.x + player2.width:
-            if bullet.y > player2.y and bullet.y < player2.y + player2.height:
-                if player1.bullet_size == 6:
-                    player2.lives -= 1
-                else:
-                    player2.lives = 0
-                bullets.pop(bullets.index(bullet))
-                if player2.lives == 0:
-                    player1.bullet_size = 6
-                    player2.visibility = False
-                    player2.explosion_vis = True
-                    bullets.clear()
-    for ebullet in ebullets:
-        if (ebullet.x < 890 and ebullet.x > 60):
-            ebullet.x += ebullet.velx
-        else:
-            ebullets.pop(ebullets.index(ebullet))
-        if (ebullet.y < 510 and ebullet.y > 60):
-            ebullet.y += ebullet.vely
-        else:
-            ebullets.pop(ebullets.index(ebullet))
-        if ebullet.x > player1.x and ebullet.x < player1.x + player1.width:
-            if ebullet.y > player1.y and ebullet.y < player1.y + player1.height:
-                if player2.bullet_size == 6:
-                    player1.lives -= 1
-                else:
-                    player1.lives = 0
-                ebullets.pop(ebullets.index(ebullet))
-                if player1.lives == 0:
-                    player2.bullet_size = 6
-                    player1.visibility = False
-                    player1.explosion_vis = True
-                    ebullets.clear()
 
     keys = pygame.key.get_pressed()
     if player1.visibility == True:
+        for bullet in bullets:
+            if (bullet.x < 890 and bullet.x > 60):
+                bullet.x += bullet.velx
+            else:
+                bullets.pop(bullets.index(bullet))
+            if (bullet.y < 510 and bullet.y > 60):
+                bullet.y += bullet.vely
+            else:
+                bullets.pop(bullets.index(bullet))
+            if bullet.x > player2.x and bullet.x < player2.x + player2.width:
+                if bullet.y > player2.y and bullet.y < player2.y + player2.height:
+                    if player1.bullet_size == 6:
+                        player2.lives -= 1
+                    else:
+                        player2.lives = 0
+                    bullets.pop(bullets.index(bullet))
+                    if player2.lives == 0:
+                        player1.bullet_size = 6
+                        player2.visibility = False
+                        player2.explosion_vis = True
+                        bullets.clear()
         if (player1.x > 830 and player1.x < 990) and (player1.y < 330 and player1.y > 315):
             if keys[pygame.K_RIGHT]:
                 player1.x += player1.vel
@@ -283,6 +296,8 @@ while run == True:
             player1.down = False
             player1.left = False
             player1.right = True
+        else:
+            drivingSound.stop()
         if keys[pygame.K_SPACE] and shootLoop == 0:
             if player1.up == True:
                 facingy = -1
@@ -297,9 +312,31 @@ while run == True:
                 facingy = 0
                 facingx = -1
             if len(bullets) < 5:
+                bulletSound.play()
                 bullets.append(projectile(round(player1.x + player1.width // 2), round(player1.y + player1.height // 2 ) , player1.bullet_size, facingx, facingy))
             shootLoop = 1
     if player2.visibility == True:
+        for ebullet in ebullets:
+            if (ebullet.x < 890 and ebullet.x > 60):
+                ebullet.x += ebullet.velx
+            else:
+                ebullets.pop(ebullets.index(ebullet))
+            if (ebullet.y < 510 and ebullet.y > 60):
+                ebullet.y += ebullet.vely
+            else:
+                ebullets.pop(ebullets.index(ebullet))
+            if ebullet.x > player1.x and ebullet.x < player1.x + player1.width:
+                if ebullet.y > player1.y and ebullet.y < player1.y + player1.height:
+                    if player2.bullet_size == 6:
+                        player1.lives -= 1
+                    else:
+                        player1.lives = 0
+                    ebullets.pop(ebullets.index(ebullet))
+                    if player1.lives == 0:
+                        player2.bullet_size = 6
+                        player1.visibility = False
+                        player1.explosion_vis = True
+                        ebullets.clear()
         if (player2.x > 830 and player2.x < 990) and (player2.y < 330 and player2.y > 315):
             if keys[pygame.K_a]:
                 player2.x -= player2.vel
@@ -347,6 +384,7 @@ while run == True:
                 efacingy = 0
                 efacingx = -1
             if len(ebullets) < 5:
+                bulletSound.play()
                 ebullets.append(projectile(round(player2.x + player2.width // 2), round(player2.y + player2.height // 2 ) , player2.bullet_size, efacingx, efacingy))
             eshootLoop = 1
     if player1.powers == True and player2.powers == True:
@@ -354,7 +392,171 @@ while run == True:
         player2.power( player2.x, player2.y)
 
     drawWin()
+#SOLO
+while solo_run == True:
+    clock.tick(30)
+    #Bullets
+    if shootLoop > 0:
+        shootLoop += 1
+    if shootLoop > 15:
+        shootLoop = 0
+    if eshootLoop > 0:
+        eshootLoop += 1
+    if eshootLoop > 15:
+        eshootLoop = 0
 
-print(player1.explosionCount)
-print(player2.explosionCount)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            solo_run = False
+
+    keys = pygame.key.get_pressed()
+    if player1.visibility == True:
+        for bullet in bullets:
+            if (bullet.x < 890 and bullet.x > 60):
+                bullet.x += bullet.velx
+            else:
+                bullets.pop(bullets.index(bullet))
+            if (bullet.y < 510 and bullet.y > 60):
+                bullet.y += bullet.vely
+            else:
+                bullets.pop(bullets.index(bullet))
+            if bullet.x > player2.x and bullet.x < player2.x + player2.width:
+                if bullet.y > player2.y and bullet.y < player2.y + player2.height:
+                    if player1.bullet_size == 6:
+                        player2.lives -= 1
+                    else:
+                        player2.lives = 0
+                    bullets.pop(bullets.index(bullet))
+                    if player2.lives == 0:
+                        player1.bullet_size = 6
+                        player2.visibility = False
+                        player2.explosion_vis = True
+                        bullets.clear()
+        if (player1.x > 830 and player1.x < 990) and (player1.y < 330 and player1.y > 315):
+            if keys[pygame.K_RIGHT]:
+                player1.x += player1.vel
+                player1.left = False
+                player1.right = True
+            elif keys[pygame.K_LEFT]:
+                player1.x-= player1.vel
+                player1.left = True
+                player1.right = False
+        elif keys[pygame.K_UP] and player1.y > 60:
+            player1.y -= player1.vel
+            player1.up = True
+            player1.down = False
+            player1.left = False
+            player1.right = False
+        elif keys[pygame.K_DOWN] and player1.y < 520 - player1.height:
+            player1.y += player1.vel
+            player1.up = False
+            player1.down = True
+            player1.left = False
+            player1.right = False
+        elif keys[pygame.K_LEFT] and player1.x > 60:
+            player1.x -= player1.vel
+            player1.up = False
+            player1.down = False
+            player1.left = True
+            player1.right = False
+        elif keys[pygame.K_RIGHT] and player1.x < 900 - player1.width:
+            player1.x += player1.vel
+            player1.up = False
+            player1.down = False
+            player1.left = False
+            player1.right = True
+        else:
+            drivingSound.stop()
+        if keys[pygame.K_SPACE] and shootLoop == 0:
+            if player1.up == True:
+                facingy = -1
+                facingx = 0
+            elif player1.down == True:
+                facingy = 1
+                facingx = 0
+            elif player1.right == True:
+                facingy = 0
+                facingx = 1
+            else:
+                facingy = 0
+                facingx = -1
+            if len(bullets) < 5:
+                bulletSound.play()
+                bullets.append(projectile(round(player1.x + player1.width // 2), round(player1.y + player1.height // 2 ) , player1.bullet_size, facingx, facingy))
+            shootLoop = 1
+    for ebullet in ebullets:
+        if (ebullet.x < 890 and ebullet.x > 60):
+            ebullet.x += ebullet.velx
+        else:
+            ebullets.pop(ebullets.index(ebullet))
+        if (ebullet.y < 510 and ebullet.y > 60):
+                ebullet.y += ebullet.vely
+        else:
+            ebullets.pop(ebullets.index(ebullet))
+        if ebullet.x > player1.x and ebullet.x < player1.x + player1.width:
+            if ebullet.y > player1.y and ebullet.y < player1.y + player1.height:
+                if player2.bullet_size == 6:
+                    player1.lives -= 1
+                else:
+                    player1.lives = 0
+                ebullets.pop(ebullets.index(ebullet))
+                if player1.lives == 0:
+                    player2.bullet_size = 6
+                    player1.visibility = False
+                    player1.explosion_vis = True
+                    ebullets.clear()
+    if eshootLoop == 0:
+        if len(ebullets) < 5:
+            if (player1.x > player2.x and player1.x < player2.x + player2.width) and player1.y < player2.y :
+                efacingy = -1
+                efacingx = 0
+                eshootLoop = 1#Ok
+                bulletSound.play()
+                ebullets.append(projectile(round(player2.x + player2.width // 2), round(player2.y + player2.height // 2 ) , player2.bullet_size, efacingx, efacingy))
+            elif ((player1.x > player2.x - 45 and player1.x < player2.x + player2.width - 45) and player1.y > player2.y):
+                efacingy = 1#Ok
+                efacingx = 0
+                eshootLoop = 1
+                bulletSound.play()
+                ebullets.append(projectile(round(player2.x + player2.width // 2), round(player2.y + player2.height // 2 ) , player2.bullet_size, efacingx, efacingy))
+            elif (player1.x < player2.x and (player1.y + 45 > player2.y and player1.y + 45 < player2.y + player2.height)):
+                efacingy = 0
+                efacingx = -1
+                eshootLoop = 1#Ok
+                bulletSound.play()
+                ebullets.append(projectile(round(player2.x + player2.width // 2), round(player2.y + player2.height // 2 ) , player2.bullet_size, efacingx, efacingy))
+            elif (player1.x > player2.x and (player1.y > player2.y and player1.y < player2.y + player2.height)): 
+                efacingy = 0
+                efacingx = 1
+                eshootLoop = 1
+                bulletSound.play()
+                ebullets.append(projectile(round(player2.x + player2.width // 2), round(player2.y + player2.height // 2 ) , player2.bullet_size, efacingx, efacingy))
+    if player2.y < 480 - player2.height and player2.y > 470 - player2.height:
+            player2.x -= player2.vel
+            player2.up = False
+            player2.down = False
+            player2.left = True
+            player2.right = False
+    if player2.y > 100 and player2.y < 110:
+            player2.x += player2.vel
+            player2.up = False
+            player2.down = False
+            player2.left = False
+            player2.right = True
+    if player2.x < 860 - player2.width and player2.x > 850 - player2.width:
+        player2.y += player2.vel
+        player2.up = False
+        player2.down = True
+        player2.left = False
+        player2.right = False
+    if player2.x < 110 and player2.x > 100:
+        player2.y -= player2.vel
+        player2.up = True
+        player2.down = False
+        player2.left = False
+        player2.right = False
+    if player1.powers == True and player2.powers == True:
+        player1.power( player1.x, player1.y)
+        player2.power( player2.x, player2.y)
+    drawWin()
 pygame.quit()
